@@ -203,6 +203,8 @@
 
   <modules>
     <module>activemq-openwire-generator</module>
+    <module>activemq-protobuf</module>
+    <module>activemq-protobuf-test</module>
     <module>activemq-client</module>
     <module>activemq-openwire-legacy</module>
     <module>activemq-broker</module>
