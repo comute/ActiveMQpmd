@@ -50,6 +50,17 @@ public class DestinationStatistics extends StatsImpl {
     protected CountStatisticImpl networkEnqueues;
     protected CountStatisticImpl networkDequeues;
 
+    // [AMQ-8463] Advanced Message Statistics are optionally enabled
+    protected LongStatisticImpl enqueuedMessageBrokerInTime;
+    protected StringStatisticImpl enqueuedMessageClientID;
+    protected StringStatisticImpl enqueuedMessageID;
+    protected LongStatisticImpl enqueuedMessageTimestamp;
+    protected LongStatisticImpl dequeuedMessageBrokerInTime;
+    protected LongStatisticImpl dequeuedMessageBrokerOutTime;
+    protected StringStatisticImpl dequeuedMessageClientID;
+    protected StringStatisticImpl dequeuedMessageID;
+    protected LongStatisticImpl dequeuedMessageTimestamp;
+
     public DestinationStatistics() {
 
         enqueues = new CountStatisticImpl("enqueues", "The number of messages that have been sent to the destination");
@@ -76,6 +87,17 @@ public class DestinationStatistics extends StatsImpl {
         networkEnqueues = new CountStatisticImpl("networkEnqueues", "The number of messages that have been sent to the destination via network connection");
         networkDequeues = new CountStatisticImpl("networkDequeues", "The number of messages that have been acknowledged from the destination via network connection");
 
+        enqueuedMessageBrokerInTime = new LongStatisticImpl("enqueuedMessageBrokerInTime", "Broker in time (ms) of last enqueued message to the destination");
+        enqueuedMessageClientID = new StringStatisticImpl("enqueuedMessageClientID", "ClientID of last enqueued message to the destination");
+        enqueuedMessageID = new StringStatisticImpl("enqueuedMessageID", "MessageID of last enqueued message to the destination");
+        enqueuedMessageTimestamp = new LongStatisticImpl("enqueuedMessageTimestamp", "Message timestamp of last enqueued message to the destination");
+
+        dequeuedMessageBrokerInTime = new LongStatisticImpl("dequeuedMessageBrokerInTime", "Broker in time (ms) of last dequeued message to the destination");
+        dequeuedMessageBrokerOutTime = new LongStatisticImpl("dequeuedMessageBrokerOutTime", "Broker out time (ms) of last dequeued message to the destination");
+        dequeuedMessageClientID = new StringStatisticImpl("dequeuedMessageClientID", "ClientID of last dequeued message to the destination");
+        dequeuedMessageID = new StringStatisticImpl("dequeuedMessageID", "MessageID of last dequeued message to the destination");
+        dequeuedMessageTimestamp = new LongStatisticImpl("dequeuedMessageTimestamp", "Message timestamp of last dequeued message to the destination");
+
         addStatistic("enqueues", enqueues);
         addStatistic("dispatched", dispatched);
         addStatistic("dequeues", dequeues);
@@ -94,6 +116,16 @@ public class DestinationStatistics extends StatsImpl {
 
         addStatistic("networkEnqueues", networkEnqueues);
         addStatistic("networkDequeues", networkDequeues);
+
+        addStatistic("enqueuedMessageBrokerInTime", enqueuedMessageBrokerInTime);
+        addStatistic("enqueuedMessageClientID", enqueuedMessageClientID);
+        addStatistic("enqueuedMessageID", enqueuedMessageID);
+        addStatistic("enqueuedMessageTimestamp", enqueuedMessageTimestamp);
+        addStatistic("dequeuedMessageBrokerInTime", dequeuedMessageBrokerInTime);
+        addStatistic("dequeuedMessageBrokerOutTime", dequeuedMessageBrokerOutTime);
+        addStatistic("dequeuedMessageClientID", dequeuedMessageClientID);
+        addStatistic("dequeuedMessageID", dequeuedMessageID);
+        addStatistic("dequeuedMessageTimestamp", dequeuedMessageTimestamp);
     }
 
     public CountStatisticImpl getEnqueues() {
@@ -170,6 +202,42 @@ public class DestinationStatistics extends StatsImpl {
         return networkDequeues;
     }
 
+    public LongStatisticImpl getEnqueuedMessageBrokerInTime() {
+        return enqueuedMessageBrokerInTime;
+    }
+
+    public StringStatisticImpl getEnqueuedMessageClientID() {
+        return enqueuedMessageClientID;
+    }
+
+    public StringStatisticImpl getEnqueuedMessageID() {
+        return enqueuedMessageID;
+    }
+
+    public LongStatisticImpl getEnqueuedMessageTimestamp() {
+        return enqueuedMessageTimestamp;
+    }
+
+    public LongStatisticImpl getDequeuedMessageBrokerInTime() {
+        return dequeuedMessageBrokerInTime;
+    }
+
+    public LongStatisticImpl getDequeuedMessageBrokerOutTime() {
+        return dequeuedMessageBrokerOutTime;
+    }
+
+    public StringStatisticImpl getDequeuedMessageClientID() {
+        return dequeuedMessageClientID;
+    }
+
+    public StringStatisticImpl getDequeuedMessageID() {
+        return dequeuedMessageID;
+    }
+
+    public LongStatisticImpl getDequeuedMessageTimestamp() {
+        return dequeuedMessageTimestamp;
+    }
+
     public void reset() {
         if (this.isDoReset()) {
             super.reset();
@@ -186,6 +254,15 @@ public class DestinationStatistics extends StatsImpl {
             maxUncommittedExceededCount.reset();
             networkEnqueues.reset();
             networkDequeues.reset();
+            enqueuedMessageBrokerInTime.reset();
+            enqueuedMessageClientID.reset();
+            enqueuedMessageID.reset();
+            enqueuedMessageTimestamp.reset();
+            dequeuedMessageBrokerInTime.reset();
+            dequeuedMessageBrokerOutTime.reset();
+            dequeuedMessageClientID.reset();
+            dequeuedMessageID.reset();
+            dequeuedMessageTimestamp.reset();
         }
     }
 
@@ -208,9 +285,21 @@ public class DestinationStatistics extends StatsImpl {
         messageSize.setEnabled(enabled);
         maxUncommittedExceededCount.setEnabled(enabled);
 
-        // [AMQ-9437] Advanced Statistics
+        // [AMQ-9437] Advanced Network Statistics
         networkEnqueues.setEnabled(enabled);
         networkDequeues.setEnabled(enabled);
+
+        // [AMQ-9437] Advanced Message Statistics
+        enqueuedMessageBrokerInTime.setEnabled(enabled);
+        enqueuedMessageClientID.setEnabled(enabled);
+        enqueuedMessageID.setEnabled(enabled);
+        enqueuedMessageTimestamp.setEnabled(enabled);
+        dequeuedMessageBrokerInTime.setEnabled(enabled);
+        dequeuedMessageBrokerOutTime.setEnabled(enabled);
+        dequeuedMessageClientID.setEnabled(enabled);
+        dequeuedMessageID.setEnabled(enabled);
+        dequeuedMessageTimestamp.setEnabled(enabled);
+
     }
 
     public void setParent(DestinationStatistics parent) {
@@ -233,6 +322,7 @@ public class DestinationStatistics extends StatsImpl {
             maxUncommittedExceededCount.setParent(parent.maxUncommittedExceededCount);
             networkEnqueues.setParent(parent.networkEnqueues);
             networkDequeues.setParent(parent.networkDequeues);
+            // [AMQ-9437] Advanced Message Statistics do not parent.
         } else {
             enqueues.setParent(null);
             dispatched.setParent(null);
@@ -252,6 +342,7 @@ public class DestinationStatistics extends StatsImpl {
             maxUncommittedExceededCount.setParent(null);
             networkEnqueues.setParent(null);
             networkDequeues.setParent(null);
+            // [AMQ-9437] Advanced Message Statistics do not parent.
         }
     }
 
