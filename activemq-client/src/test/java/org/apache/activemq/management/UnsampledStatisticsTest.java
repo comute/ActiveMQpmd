@@ -25,16 +25,14 @@ import org.junit.Test;
 public class UnsampledStatisticsTest {
 
     @Test
-    public void testUnsampledStatisticsEnabled() {
-        LongStatisticImpl longStatisticImpl = new LongStatisticImpl("longStat", "long", "A long statistic");
-        longStatisticImpl.setEnabled(true);
-        longStatisticImpl.setValue(Long.MAX_VALUE);
-        LongStatistic longStatistic = longStatisticImpl;
+    public void testUnsampledStatisticsEnabledTest() {
+        UnsampledStatisticImpl<Long> longStatistic = new UnsampledStatisticImpl<>("longStat", "long", "A long statistic", Long.valueOf(0l));
+        longStatistic.setEnabled(true);
+        longStatistic.setValue(Long.MAX_VALUE);
 
-        StringStatisticImpl stringStatisticImpl = new StringStatisticImpl("stringStat", "chars", "A string statistic");
-        stringStatisticImpl.setEnabled(true);
-        stringStatisticImpl.setValue("Hello World!");
-        StringStatistic stringStatistic = stringStatisticImpl;
+        UnsampledStatisticImpl<String> stringStatistic = new UnsampledStatisticImpl<>("stringStat", "chars", "A string statistic", null);
+        stringStatistic.setEnabled(true);
+        stringStatistic.setValue("Hello World!");
 
         assertEquals("A long statistic", longStatistic.getDescription());
         assertEquals(Long.valueOf(0l), Long.valueOf(longStatistic.getLastSampleTime()));
@@ -42,6 +40,10 @@ public class UnsampledStatisticsTest {
         assertEquals(Long.valueOf(0l), Long.valueOf(longStatistic.getStartTime()));
         assertEquals("long", longStatistic.getUnit());
         assertEquals(Long.valueOf(Long.MAX_VALUE), longStatistic.getValue());
+        assertTrue(longStatistic.toString().contains("value: " + Long.MAX_VALUE));
+        longStatistic.reset();
+        assertEquals(Long.valueOf(0l), longStatistic.getValue());
+        assertTrue(longStatistic.toString().contains("value: 0"));
 
         assertEquals("A string statistic", stringStatistic.getDescription());
         assertEquals(Long.valueOf(0l), Long.valueOf(stringStatistic.getLastSampleTime()));
@@ -49,6 +51,10 @@ public class UnsampledStatisticsTest {
         assertEquals(Long.valueOf(0l), Long.valueOf(stringStatistic.getStartTime()));
         assertEquals("chars", stringStatistic.getUnit());
         assertEquals("Hello World!", stringStatistic.getValue());
+        assertTrue(stringStatistic.toString().contains("value: Hello World!"));
+        stringStatistic.reset();
+        assertNull(stringStatistic.getValue());
+        assertTrue(stringStatistic.toString().contains("value: null"));
     }
 
 }

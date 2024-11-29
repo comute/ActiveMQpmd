@@ -22,5 +22,7 @@ package org.apache.activemq.management;
  * A marker interface for Statistics without
  * sampleTime or or startTime.
  */
-public interface UnsampledStatistic extends Statistic {}
-
+public interface UnsampledStatistic<T> extends Statistic, Resettable {
+    public T getValue();
+    public void setValue(T value);
+}

@@ -51,15 +51,15 @@ public class DestinationStatistics extends StatsImpl {
     protected CountStatisticImpl networkDequeues;
 
     // [AMQ-8463] Advanced Message Statistics are optionally enabled
-    protected LongStatisticImpl enqueuedMessageBrokerInTime;
-    protected StringStatisticImpl enqueuedMessageClientID;
-    protected StringStatisticImpl enqueuedMessageID;
-    protected LongStatisticImpl enqueuedMessageTimestamp;
-    protected LongStatisticImpl dequeuedMessageBrokerInTime;
-    protected LongStatisticImpl dequeuedMessageBrokerOutTime;
-    protected StringStatisticImpl dequeuedMessageClientID;
-    protected StringStatisticImpl dequeuedMessageID;
-    protected LongStatisticImpl dequeuedMessageTimestamp;
+    protected UnsampledStatisticImpl<Long> enqueuedMessageBrokerInTime;
+    protected UnsampledStatisticImpl<String> enqueuedMessageClientID;
+    protected UnsampledStatisticImpl<String> enqueuedMessageID;
+    protected UnsampledStatisticImpl<Long> enqueuedMessageTimestamp;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageBrokerInTime;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageBrokerOutTime;
+    protected UnsampledStatisticImpl<String> dequeuedMessageClientID;
+    protected UnsampledStatisticImpl<String> dequeuedMessageID;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageTimestamp;
 
     public DestinationStatistics() {
 
@@ -87,16 +87,16 @@ public class DestinationStatistics extends StatsImpl {
         networkEnqueues = new CountStatisticImpl("networkEnqueues", "The number of messages that have been sent to the destination via network connection");
         networkDequeues = new CountStatisticImpl("networkDequeues", "The number of messages that have been acknowledged from the destination via network connection");
 
-        enqueuedMessageBrokerInTime = new LongStatisticImpl("enqueuedMessageBrokerInTime", "Broker in time (ms) of last enqueued message to the destination");
-        enqueuedMessageClientID = new StringStatisticImpl("enqueuedMessageClientID", "ClientID of last enqueued message to the destination");
-        enqueuedMessageID = new StringStatisticImpl("enqueuedMessageID", "MessageID of last enqueued message to the destination");
-        enqueuedMessageTimestamp = new LongStatisticImpl("enqueuedMessageTimestamp", "Message timestamp of last enqueued message to the destination");
+        enqueuedMessageBrokerInTime = new UnsampledStatisticImpl<>("enqueuedMessageBrokerInTime", "ms", "Broker in time (ms) of last enqueued message to the destination", Long.valueOf(0l));
+        enqueuedMessageClientID = new UnsampledStatisticImpl<>("enqueuedMessageClientID", "id", "ClientID of last enqueued message to the destination", null);
+        enqueuedMessageID = new UnsampledStatisticImpl<>("enqueuedMessageID", "id", "MessageID of last enqueued message to the destination", null);
+        enqueuedMessageTimestamp = new UnsampledStatisticImpl<>("enqueuedMessageTimestamp", "ms", "Message timestamp of last enqueued message to the destination", Long.valueOf(0l));
 
-        dequeuedMessageBrokerInTime = new LongStatisticImpl("dequeuedMessageBrokerInTime", "Broker in time (ms) of last dequeued message to the destination");
-        dequeuedMessageBrokerOutTime = new LongStatisticImpl("dequeuedMessageBrokerOutTime", "Broker out time (ms) of last dequeued message to the destination");
-        dequeuedMessageClientID = new StringStatisticImpl("dequeuedMessageClientID", "ClientID of last dequeued message to the destination");
-        dequeuedMessageID = new StringStatisticImpl("dequeuedMessageID", "MessageID of last dequeued message to the destination");
-        dequeuedMessageTimestamp = new LongStatisticImpl("dequeuedMessageTimestamp", "Message timestamp of last dequeued message to the destination");
+        dequeuedMessageBrokerInTime = new UnsampledStatisticImpl<>("dequeuedMessageBrokerInTime", "ms", "Broker in time (ms) of last dequeued message to the destination", Long.valueOf(0l));
+        dequeuedMessageBrokerOutTime = new UnsampledStatisticImpl<>("dequeuedMessageBrokerOutTime", "ms", "Broker out time (ms) of last dequeued message to the destination", Long.valueOf(0l));
+        dequeuedMessageClientID = new UnsampledStatisticImpl<>("dequeuedMessageClientID", "id", "ClientID of last dequeued message to the destination", null);
+        dequeuedMessageID = new UnsampledStatisticImpl<>("dequeuedMessageID", "id", "MessageID of last dequeued message to the destination", null);
+        dequeuedMessageTimestamp = new UnsampledStatisticImpl<>("dequeuedMessageTimestamp", "ms", "Message timestamp of last dequeued message to the destination", Long.valueOf(0l));
 
         addStatistic("enqueues", enqueues);
         addStatistic("dispatched", dispatched);
@@ -202,39 +202,39 @@ public class DestinationStatistics extends StatsImpl {
         return networkDequeues;
     }
 
-    public LongStatisticImpl getEnqueuedMessageBrokerInTime() {
+    public UnsampledStatistic<Long> getEnqueuedMessageBrokerInTime() {
         return enqueuedMessageBrokerInTime;
     }
 
-    public StringStatisticImpl getEnqueuedMessageClientID() {
+    public UnsampledStatistic<String> getEnqueuedMessageClientID() {
         return enqueuedMessageClientID;
     }
 
-    public StringStatisticImpl getEnqueuedMessageID() {
+    public UnsampledStatistic<String> getEnqueuedMessageID() {
         return enqueuedMessageID;
     }
 
-    public LongStatisticImpl getEnqueuedMessageTimestamp() {
+    public UnsampledStatistic<Long> getEnqueuedMessageTimestamp() {
         return enqueuedMessageTimestamp;
     }
 
-    public LongStatisticImpl getDequeuedMessageBrokerInTime() {
+    public UnsampledStatistic<Long> getDequeuedMessageBrokerInTime() {
         return dequeuedMessageBrokerInTime;
     }
 
-    public LongStatisticImpl getDequeuedMessageBrokerOutTime() {
+    public UnsampledStatistic<Long> getDequeuedMessageBrokerOutTime() {
         return dequeuedMessageBrokerOutTime;
     }
 
-    public StringStatisticImpl getDequeuedMessageClientID() {
+    public UnsampledStatistic<String> getDequeuedMessageClientID() {
         return dequeuedMessageClientID;
     }
 
-    public StringStatisticImpl getDequeuedMessageID() {
+    public UnsampledStatistic<String> getDequeuedMessageID() {
         return dequeuedMessageID;
     }
 
-    public LongStatisticImpl getDequeuedMessageTimestamp() {
+    public UnsampledStatistic<Long> getDequeuedMessageTimestamp() {
         return dequeuedMessageTimestamp;
     }
 

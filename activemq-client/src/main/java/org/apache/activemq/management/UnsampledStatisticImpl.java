@@ -16,19 +16,29 @@
  */
 package org.apache.activemq.management;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
- * Base class for a UnsampledStatistic implementation
- * 
+ * UnsampledStatistic<T> implementation
  * 
  */
-public abstract class UnsampledStatisticImpl extends StatisticImpl implements UnsampledStatistic {
+public class UnsampledStatisticImpl<T> extends StatisticImpl implements UnsampledStatistic<T> {
 
-    public UnsampledStatisticImpl(String name, String unit, String description) {
+    protected final AtomicReference<T> value = new AtomicReference<>();
+    protected final T defaultValue;
+
+    public UnsampledStatisticImpl(String name, String unit, String description, T defaultValue) {
         super(name, unit, description, 0l, 0l);
+        this.value.set(defaultValue);
+        this.defaultValue = defaultValue;
     }
 
     @Override
-    public void reset() {}
+    public void reset() {
+        if (isDoReset()) {
+            value.set(defaultValue);
+        }
+    }
 
     @Override
     protected void updateSampleTime() {}
@@ -41,5 +51,23 @@ public abstract class UnsampledStatisticImpl extends StatisticImpl implements Un
     @Override
     public long getLastSampleTime() {
         return 0l;
+    }
+
+    @Override
+    public T getValue() {
+        return value.get();
+    }
+
+    @Override
+    public void setValue(T value) {
+        if (isEnabled()) {
+            this.value.set(value); 
+        }
+    }
+
+    protected void appendFieldDescription(StringBuffer buffer) {
+        buffer.append(" value: ");
+        buffer.append(value.get());
+        super.appendFieldDescription(buffer);
     }
 }
