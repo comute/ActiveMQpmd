@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class UnsampledStatisticImpl<T> extends StatisticImpl implements UnsampledStatistic<T> {
 
-    protected final AtomicReference<T> value = new AtomicReference<>();
-    protected final T defaultValue;
+    private final AtomicReference<T> value = new AtomicReference<>();
+    private final T defaultValue;
 
     public UnsampledStatisticImpl(String name, String unit, String description, T defaultValue) {
         super(name, unit, description, 0l, 0l);
