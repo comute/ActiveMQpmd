@@ -879,6 +879,7 @@ public abstract class BaseDestination implements Destination {
     @Override
     public void setAdvancedNetworkStatisticsEnabled(boolean advancedNetworkStatisticsEnabled) {
         this.advancedNetworkStatisticsEnabled = advancedNetworkStatisticsEnabled;
+        this.destinationStatistics.setAdvancedStatisticsEnabled(advancedNetworkStatisticsEnabled);
     }
 
     @Override
@@ -889,6 +890,7 @@ public abstract class BaseDestination implements Destination {
     @Override
     public void setAdvancedMessageStatisticsEnabled(boolean advancedMessageStatisticsEnabled) {
         this.advancedMessageStatisticsEnabled = advancedMessageStatisticsEnabled;
+        this.destinationStatistics.setAdvancedMessageStatisticsEnabled(advancedMessageStatisticsEnabled);
     }
 
     @Override
