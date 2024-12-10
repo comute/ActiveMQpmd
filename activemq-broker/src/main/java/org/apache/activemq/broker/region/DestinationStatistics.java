@@ -20,6 +20,10 @@ package org.apache.activemq.broker.region;
 import org.apache.activemq.management.CountStatisticImpl;
 import org.apache.activemq.management.PollCountStatisticImpl;
 import org.apache.activemq.management.StatsImpl;
+
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.activemq.management.*;
 
 /**
@@ -46,9 +50,22 @@ public class DestinationStatistics extends StatsImpl {
     protected SizeStatisticImpl messageSize;
     protected CountStatisticImpl maxUncommittedExceededCount;
 
-    // [AMQ-9437] Advanced Statistics are optionally enabled
+    // [AMQ-9437] Advanced Network Statistics are optionally enabled
+    protected final AtomicBoolean advancedNetworkStatisticsEnabled = new AtomicBoolean(false);
     protected CountStatisticImpl networkEnqueues;
     protected CountStatisticImpl networkDequeues;
+
+    // [AMQ-8463] Advanced Message Statistics are optionally enabled
+    protected final AtomicBoolean advancedMessageStatisticsEnabled = new AtomicBoolean(false);
+    protected UnsampledStatisticImpl<Long> enqueuedMessageBrokerInTime;
+    protected UnsampledStatisticImpl<String> enqueuedMessageClientID;
+    protected UnsampledStatisticImpl<String> enqueuedMessageID;
+    protected UnsampledStatisticImpl<Long> enqueuedMessageTimestamp;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageBrokerInTime;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageBrokerOutTime;
+    protected UnsampledStatisticImpl<String> dequeuedMessageClientID;
+    protected UnsampledStatisticImpl<String> dequeuedMessageID;
+    protected UnsampledStatisticImpl<Long> dequeuedMessageTimestamp;
 
     public DestinationStatistics() {
 
@@ -73,27 +90,16 @@ public class DestinationStatistics extends StatsImpl {
         messageSize = new SizeStatisticImpl("messageSize","Size of messages passing through the destination");
         maxUncommittedExceededCount = new CountStatisticImpl("maxUncommittedExceededCount", "number of times maxUncommittedCount has been exceeded");
 
-        networkEnqueues = new CountStatisticImpl("networkEnqueues", "The number of messages that have been sent to the destination via network connection");
-        networkDequeues = new CountStatisticImpl("networkDequeues", "The number of messages that have been acknowledged from the destination via network connection");
+        addStatistics(Set.of(enqueues, dispatched, dequeues, duplicateFromStore, inflight, expired, consumers,
+                producers, messages, messagesCached, processTime, blockedSends, blockedTime, messageSize, maxUncommittedExceededCount));
 
-        addStatistic("enqueues", enqueues);
-        addStatistic("dispatched", dispatched);
-        addStatistic("dequeues", dequeues);
-        addStatistic("duplicateFromStore", duplicateFromStore);
-        addStatistic("inflight", inflight);
-        addStatistic("expired", expired);
-        addStatistic("consumers", consumers);
-        addStatistic("producers", producers);
-        addStatistic("messages", messages);
-        addStatistic("messagesCached", messagesCached);
-        addStatistic("processTime", processTime);
-        addStatistic("blockedSends",blockedSends);
-        addStatistic("blockedTime",blockedTime);
-        addStatistic("messageSize",messageSize);
-        addStatistic("maxUncommittedExceededCount", maxUncommittedExceededCount);
+        if(advancedNetworkStatisticsEnabled.get()) {
+            enableAdvancedNetworkStatistics();
+        }
 
-        addStatistic("networkEnqueues", networkEnqueues);
-        addStatistic("networkDequeues", networkDequeues);
+        if(advancedMessageStatisticsEnabled.get()) {
+            enableAdvancedMessageStatistics();
+        }
     }
 
     public CountStatisticImpl getEnqueues() {
@@ -162,12 +168,49 @@ public class DestinationStatistics extends StatsImpl {
         return this.maxUncommittedExceededCount;
     }
 
+    // FIXME: Ugh.. all these would need to be behind a lock as well
     public CountStatisticImpl getNetworkEnqueues() {
         return networkEnqueues;
     }
 
     public CountStatisticImpl getNetworkDequeues() {
         return networkDequeues;
+    }
+
+    public UnsampledStatistic<Long> getEnqueuedMessageBrokerInTime() {
+        return enqueuedMessageBrokerInTime;
+    }
+
+    public UnsampledStatistic<String> getEnqueuedMessageClientID() {
+        return enqueuedMessageClientID;
+    }
+
+    public UnsampledStatistic<String> getEnqueuedMessageID() {
+        return enqueuedMessageID;
+    }
+
+    public UnsampledStatistic<Long> getEnqueuedMessageTimestamp() {
+        return enqueuedMessageTimestamp;
+    }
+
+    public UnsampledStatistic<Long> getDequeuedMessageBrokerInTime() {
+        return dequeuedMessageBrokerInTime;
+    }
+
+    public UnsampledStatistic<Long> getDequeuedMessageBrokerOutTime() {
+        return dequeuedMessageBrokerOutTime;
+    }
+
+    public UnsampledStatistic<String> getDequeuedMessageClientID() {
+        return dequeuedMessageClientID;
+    }
+
+    public UnsampledStatistic<String> getDequeuedMessageID() {
+        return dequeuedMessageID;
+    }
+
+    public UnsampledStatistic<Long> getDequeuedMessageTimestamp() {
+        return dequeuedMessageTimestamp;
     }
 
     public void reset() {
@@ -184,8 +227,23 @@ public class DestinationStatistics extends StatsImpl {
             blockedTime.reset();
             messageSize.reset();
             maxUncommittedExceededCount.reset();
-            networkEnqueues.reset();
-            networkDequeues.reset();
+
+            if(advancedMessageStatisticsEnabled.get()) {
+                enqueuedMessageBrokerInTime.reset();
+                enqueuedMessageClientID.reset();
+                enqueuedMessageID.reset();
+                enqueuedMessageTimestamp.reset();
+                dequeuedMessageBrokerInTime.reset();
+                dequeuedMessageBrokerOutTime.reset();
+                dequeuedMessageClientID.reset();
+                dequeuedMessageID.reset();
+                dequeuedMessageTimestamp.reset();
+            }
+
+            if(advancedNetworkStatisticsEnabled.get()) {
+                networkEnqueues.reset();
+                networkDequeues.reset();
+            }
         }
     }
 
@@ -208,9 +266,21 @@ public class DestinationStatistics extends StatsImpl {
         messageSize.setEnabled(enabled);
         maxUncommittedExceededCount.setEnabled(enabled);
 
-        // [AMQ-9437] Advanced Statistics
+        // [AMQ-9437] Advanced Network Statistics
         networkEnqueues.setEnabled(enabled);
         networkDequeues.setEnabled(enabled);
+
+        // [AMQ-9437] Advanced Message Statistics
+        enqueuedMessageBrokerInTime.setEnabled(enabled);
+        enqueuedMessageClientID.setEnabled(enabled);
+        enqueuedMessageID.setEnabled(enabled);
+        enqueuedMessageTimestamp.setEnabled(enabled);
+        dequeuedMessageBrokerInTime.setEnabled(enabled);
+        dequeuedMessageBrokerOutTime.setEnabled(enabled);
+        dequeuedMessageClientID.setEnabled(enabled);
+        dequeuedMessageID.setEnabled(enabled);
+        dequeuedMessageTimestamp.setEnabled(enabled);
+
     }
 
     public void setParent(DestinationStatistics parent) {
@@ -233,6 +303,7 @@ public class DestinationStatistics extends StatsImpl {
             maxUncommittedExceededCount.setParent(parent.maxUncommittedExceededCount);
             networkEnqueues.setParent(parent.networkEnqueues);
             networkDequeues.setParent(parent.networkDequeues);
+            // [AMQ-9437] Advanced Message Statistics do not parent.
         } else {
             enqueues.setParent(null);
             dispatched.setParent(null);
@@ -252,7 +323,72 @@ public class DestinationStatistics extends StatsImpl {
             maxUncommittedExceededCount.setParent(null);
             networkEnqueues.setParent(null);
             networkDequeues.setParent(null);
+            // [AMQ-9437] Advanced Message Statistics do not parent.
         }
     }
 
+    // FIXME: This needs to use a reentrant lock instead 
+    public synchronized void setAdvancedMessageStatisticsEnabled(boolean advancedMessageStatisticsEnabled) {
+        synchronized(this.advancedMessageStatisticsEnabled) {
+            if(!this.advancedMessageStatisticsEnabled.getAndSet(advancedMessageStatisticsEnabled)) {
+                enableAdvancedMessageStatistics();
+            } else {
+                disableAdvancedMessageStatistics();
+            }
+        }
+    }
+
+    public synchronized void setAdvancedNetworkStatisticsEnabled(boolean advancedNetworkStatisticsEnabled) {
+        synchronized(this.advancedNetworkStatisticsEnabled) {
+            if(this.advancedNetworkStatisticsEnabled.getAndSet(advancedNetworkStatisticsEnabled)) {
+                enableAdvancedNetworkStatistics();
+            } else {
+                disableAdvancedNetworkStatistics();
+            }
+        }
+    }
+
+    private void enableAdvancedMessageStatistics() {
+        enqueuedMessageBrokerInTime = new UnsampledStatisticImpl<>("enqueuedMessageBrokerInTime", "ms", "Broker in time (ms) of last enqueued message to the destination", Long.valueOf(0l));
+        enqueuedMessageClientID = new UnsampledStatisticImpl<>("enqueuedMessageClientID", "id", "ClientID of last enqueued message to the destination", null);
+        enqueuedMessageID = new UnsampledStatisticImpl<>("enqueuedMessageID", "id", "MessageID of last enqueued message to the destination", null);
+        enqueuedMessageTimestamp = new UnsampledStatisticImpl<>("enqueuedMessageTimestamp", "ms", "Message timestamp of last enqueued message to the destination", Long.valueOf(0l));
+
+        dequeuedMessageBrokerInTime = new UnsampledStatisticImpl<>("dequeuedMessageBrokerInTime", "ms", "Broker in time (ms) of last dequeued message to the destination", Long.valueOf(0l));
+        dequeuedMessageBrokerOutTime = new UnsampledStatisticImpl<>("dequeuedMessageBrokerOutTime", "ms", "Broker out time (ms) of last dequeued message to the destination", Long.valueOf(0l));
+        dequeuedMessageClientID = new UnsampledStatisticImpl<>("dequeuedMessageClientID", "id", "ClientID of last dequeued message to the destination", null);
+        dequeuedMessageID = new UnsampledStatisticImpl<>("dequeuedMessageID", "id", "MessageID of last dequeued message to the destination", null);
+        dequeuedMessageTimestamp = new UnsampledStatisticImpl<>("dequeuedMessageTimestamp", "ms", "Message timestamp of last dequeued message to the destination", Long.valueOf(0l));
+
+        addStatistics(Set.of(enqueuedMessageBrokerInTime, enqueuedMessageClientID, enqueuedMessageID, enqueuedMessageTimestamp,
+                dequeuedMessageBrokerInTime, dequeuedMessageBrokerOutTime, dequeuedMessageClientID, dequeuedMessageID, dequeuedMessageTimestamp));
+    }
+
+    private void disableAdvancedMessageStatistics() {
+        removeStatistics(Set.of(enqueuedMessageBrokerInTime, enqueuedMessageClientID, enqueuedMessageID, enqueuedMessageTimestamp,
+                dequeuedMessageBrokerInTime, dequeuedMessageBrokerOutTime, dequeuedMessageClientID, dequeuedMessageID, dequeuedMessageTimestamp));
+
+        enqueuedMessageBrokerInTime = null;
+        enqueuedMessageClientID = null;
+        enqueuedMessageID = null;
+        enqueuedMessageTimestamp = null;
+
+        dequeuedMessageBrokerInTime = null;
+        dequeuedMessageBrokerOutTime = null;
+        dequeuedMessageClientID = null;
+        dequeuedMessageID = null;
+        dequeuedMessageTimestamp = null;
+    }
+
+    private void enableAdvancedNetworkStatistics() {
+        networkEnqueues = new CountStatisticImpl("networkEnqueues", "The number of messages that have been sent to the destination via network connection");
+        networkDequeues = new CountStatisticImpl("networkDequeues", "The number of messages that have been acknowledged from the destination via network connection");
+        addStatistics(Set.of(networkEnqueues, networkDequeues));
+    }
+
+    private void disableAdvancedNetworkStatistics() {
+        removeStatistics(Set.of(networkEnqueues, networkDequeues));
+        networkEnqueues = null;
+        networkDequeues = null;
+    }
 }

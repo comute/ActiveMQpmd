@@ -17,6 +17,7 @@
 package org.apache.activemq.management;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -77,5 +78,13 @@ public class StatsImpl extends StatisticImpl implements Stats, Resettable {
 
     protected void addStatistic(String name, StatisticImpl statistic) {
         this.set.add(statistic);
+    }
+
+    protected void addStatistics(Collection<StatisticImpl> statistics) {
+        this.set.addAll(statistics);
+    }
+
+    protected void removeStatistics(Collection<StatisticImpl> statistics) {
+        this.set.removeAll(statistics);
     }
 }
